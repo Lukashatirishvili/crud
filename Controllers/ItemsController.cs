@@ -1,6 +1,7 @@
 ﻿using crud.Data;
 using crud.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace crud.Controllers
 {
@@ -12,9 +13,12 @@ namespace crud.Controllers
         {
             _context = context;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var item = await _context.Items.ToListAsync();
+
+
+            return View(item);
         }
 
         public IActionResult Create()
@@ -28,6 +32,26 @@ namespace crud.Controllers
             if (ModelState.IsValid)
             {
                 _context.Items.Add(item);
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Index");
+            }
+
+            return View(item);
+        }
+
+        public async Task<IActionResult> Edit(int id)
+        {
+            var item = await _context.Items.FirstOrDefaultAsync(x => x.Id == id);
+
+            return View(item);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(int id, [Bind("Id, Name, Price")] Item item)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Update(item);
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Index");
             }
